@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Range Bar SVEStochRSI Scanner</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap + DataTables -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css" rel="stylesheet">
+</head>
+<body class="bg-light text-dark p-4">
+  <div class="container">
+    <h2 class="mb-4">Range Bar SVEStochRSI Scanner</h2>
+
+    <form method="POST">
+      <div class="mb-3">
+        <label class="form-label">Tickers (optional – leave blank to scan all list)</label>
+        <input class="form-control" type="text" name="tickers" value="{{ request.form.get('tickers', '') }}">
+      </div>
+
+      <div class="mb-3 row">
+        <div class="col">
+          <label class="form-label">Min Price</label>
+          <input class="form-control" type="number" name="min_price" value="{{ request.form.get('min_price') }}" required>
+        </div>
+        <div class="col">
+          <label class="form-label">Max Price</label>
+          <input class="form-control" type="number" name="max_price" value="{{ request.form.get('max_price') }}" required>
+        </div>
+      </div>
+
+      <h4 class="mt-5">SVEStochRSI Configs</h4>
+
+      {% for i in range(1, 4) %}
+      <fieldset class="border p-3 mb-3 bg-white">
+        <div class="row mb-2">
+          <div class="col">
+            <label>Range %</label>
+            <input class="form-control" name="range_pct_{{ i }}" step="0.01" value="{{ request.form.get('range_pct_' ~ i, '0.5' if i == 1 else '0') }}">
+          </div>
+          <div class="col">
+            <label>RSI Length</label>
+            <input class="form-control" name="rsi_length_{{ i }}" value="{{ request.form.get('rsi_length_' ~ i, '14' if i == 1 else '0') }}">
+          </div>
+          <div class="col">
+            <label>Stoch Length</label>
+            <input class="form-control" name="stoch_length_{{ i }}" value="{{ request.form.get('stoch_length_' ~ i, '5' if i == 1 else '0') }}">
+          </div>
+          <div class="col">
+            <label>Avg Length</label>
+            <input class="form-control" name="avg_length_{{ i }}" value="{{ request.form.get('avg_length_' ~ i, '8' if i == 1 else '0') }}">
+          </div>
+        </div>
+
+        <div class="row mb-2">
+          <div class="col">
+            <label>Overbought Level</label>
+            <input class="form-control" name="overbought_{{ i }}" value="{{ request.form.get('overbought_' ~ i, '80' if i == 1 else '0') }}">
+          </div>
+          <div class="col">
+            <label>Oversold Level</label>
+            <input class="form-control" name="oversold_{{ i }}" value="{{ request.form.get('oversold_' ~ i, '8' if i == 1 else '0') }}">
+          </div>
+          <div class="col">
+            <label>Condition</label>
+            {% set selected = request.form.get('scan_type_' ~ i, '') %}
+            <select class="form-control" name="scan_type_{{ i }}">
+              <option value="less_than" {{ 'selected' if selected == 'less_than' else '' }}>is less than oversold</option>
+              <option value="greater_than" {{ 'selected' if selected == 'greater_than' else '' }}>is greater than overbought</option>
+              <option value="crosses_above" {{ 'selected' if selected == 'crosses_above' else '' }}>crosses above oversold</option>
+              <option value="crosses_below" {{ 'selected' if selected == 'crosses_below' else '' }}>crosses below overbought</option>
+              <option value="rising" {{ 'selected' if selected == 'rising' else '' }}>is rising</option>
+              <option value="falling" {{ 'selected' if selected == 'falling' else '' }}>is falling</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+      {% endfor %}
+
+      <button class="btn btn-primary">Run Scan</button>
+    </form>
+
+    {% if results %}
+    <h3 class="mt-5">Scan Results</h3>
+    <table id="scanTable" class="table table-bordered table-striped mt-3">
+      <thead class="table-light">
+        <tr>
+          <th>Ticker</th>
+          <th>Last Price</th>
+          <th>SVEStochRSI</th>
+          <th>SVEStochRSI Chart</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in results %}
+        <tr>
+          <td>{{ r.ticker }}</td>
+          <td>${{ "%.2f"|format(r.price) }}</td>
+          <td>{{ "%.2f"|format(r.stoch_rsi) }}</td>
+          <td><img src="https://quickchart.io/chart?c={{ r.chart_url | safe }}" width="120"></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% elif request.method == "POST" %}
+    <div class="alert alert-warning mt-4">
+      No stocks matched your scan conditions. Try adjusting the filters and scanning again.
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+  <script>
+    $(document).ready(function () {
+      $('#scanTable').DataTable();
+    });
+  </script>
+</body>
+</html>

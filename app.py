@@ -1,14 +1,14 @@
 from flask import Flask, render_template, request
 import requests
 import pandas as pd
-import pandas_ta as ta
+# import pandas_ta as ta
 from datetime import datetime, timedelta
 import json
 import urllib.parse
 import os
 import sys
 
-sys.path.insert(0, 'lib')
+# sys.path.insert(0, './pandas_ta')
 app = Flask(__name__, template_folder="templates")
 API_KEY = "FSb95RQbEj22ehQKXRWk0eLFwwXWDo4Z"
 

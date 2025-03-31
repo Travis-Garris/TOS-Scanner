@@ -10,15 +10,16 @@ import sys
 
 # sys.path.insert(0, './pandas_ta')
 app = Flask(__name__, template_folder="templates")
-API_KEY = "FSb95RQbEj22ehQKXRWk0eLFwwXWDo4Z"
+API_KEY = "j8buZA_wTOJyoBAE7xYGm1SI4DtjHhrt"
 
 def get_minute_data(symbol, multiplier=1, timespan="minute", limit=1000):
     end_date = datetime.now()
-    start_date = end_date - timedelta(days=2)
+    start_date = end_date - timedelta(days=5)
     url = f"https://api.polygon.io/v2/aggs/ticker/{symbol}/range/{multiplier}/{timespan}/{start_date.date()}/{end_date.date()}"
     params = {"adjusted": "true", "apiKey": API_KEY}
     res = requests.get(url, params=params)
     data = res.json()
+    print(f"get minute data result {res.status_code}\n {data}")
 
     if "results" not in data:
         return []
@@ -49,10 +50,10 @@ def build_range_bars(candles, range_size):
 def compute_sve_stoch_rsi(closes, rsi_len=14, stoch_len=5, avg_len=8):
     close_series = pd.Series(closes)
     delta = close_series.diff()
-    gain = delta.clip(lower=0)
-    loss = -delta.clip(upper=0)
-    avg_gain = gain.rolling(rsi_len).mean()
-    avg_loss = loss.rolling(rsi_len).mean()
+    gain = delta.where(delta > 0, 0)
+    loss = -delta.where(delta < 0, 0)
+    avg_gain = gain.ewm(alpha=1/rsi_len, adjust=False).mean()
+    avg_loss = loss.ewm(alpha=1/rsi_len, adjust=False).mean()
     rs = avg_gain / (avg_loss + 1e-10)
     rsi = 100 - (100 / (1 + rs))
 

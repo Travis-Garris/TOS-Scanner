@@ -19,7 +19,6 @@ def get_minute_data(symbol, multiplier=1, timespan="minute", limit=1000):
     params = {"adjusted": "true", "apiKey": API_KEY}
     res = requests.get(url, params=params)
     data = res.json()
-    print(f"get minute data result {res.status_code}\n {data}")
 
     if "results" not in data:
         return []
@@ -75,7 +74,13 @@ def index():
             if tickers_input:
                 tickers = tickers_input.upper().split(',')
             else:
-                tickers = ["AAPL", "MSFT", "GOOGL", "TSLA", "NVDA", "AMD", "META"]
+                tickers = [
+                        "AAPL", "MSFT", "GOOGL", "TSLA", "NVDA", "AMD", "META", "MRVL", "AMZN", "CRM",
+                        "NFLX", "INTC", "CSCO", "QCOM", "ORCL", "ADBE", "PYPL", "IBM", "AVGO", "TXN",
+                        "F", "GM", "GE", "BA", "T", "VZ", "PFE", "JNJ", "WMT", "HD", "LOW", "COST",
+                        "XOM", "CVX", "COP", "SLB", "OXY", "MRO", "WFC", "BAC", "JPM", "GS", "USB",
+                        "UNH", "LLY", "ABBV", "MRK", "TMO", "DHR", "NEE", "DUK", "SO", "SRE", "PLTR"
+                    ]
             min_price = float(request.form.get("min_price", 0))
             max_price = float(request.form.get("max_price", 9999))
 
